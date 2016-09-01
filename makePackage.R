@@ -18,5 +18,5 @@ time_data <- data %>%
   select(id, enroll = gestage, `6wk` = congest6wklmp, ft = congestftlmp, SAB = SABlmp, `Live Birth` = lblmp, Stillbirth = sblmp) %>%
   melt(id = "id") %>%
   na.omit()
-?timelinePlot
+
 timelinePlot(time_data)

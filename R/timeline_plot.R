@@ -12,8 +12,8 @@
 #' @param alpha Opacity level of the curves. 
 #' @return The sum of \code{x} and \code{y}.
 #' @examples
-#' @export
 #' timelinePlot(my_time_data)
+#' @export
 timelinePlot <- function(time_data,
                          x_limits = NA,
                          variable_name = "variable", 

@@ -29,4 +29,7 @@ The sum of \code{x} and \code{y}.
 \description{
 Takes data in with at least two columns- the measurement variable- and the time from baseline to that value.
 }
+\examples{
+timelinePlot(my_time_data)
+}
 
