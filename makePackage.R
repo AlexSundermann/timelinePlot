@@ -20,3 +20,5 @@ time_data <- data %>%
   na.omit()
 
 timelinePlot(time_data)
+
+devtools::install_github("nstrayer/timelinePlot")
