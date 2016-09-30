@@ -52,8 +52,8 @@ timelinePlot <- function(d,
                                max_time = NULL,
                                interval_width = NULL,
                                greyscale = F,
-                               custom_xbreaks = F,
-                               custom_xlabs = F){
+                               custom_xbreaks = NULL,
+                               custom_xlabs = NULL){
 
   time_divider <-  ifelse(time_interval == "weeks", 7, ifelse(time_interval == "years", 365, 1))
 
@@ -103,11 +103,6 @@ timelinePlot <- function(d,
   
 
   # Plotting stuff goes below here.
-  if(is.na(event_labels)) event_labels = sort(event_vars)
-
-  #Size legend logic goes here
-
-  size_df <- data.frame()
 
   plot <- ggplot(dist_data, aes(x = time, color = event)) +
     geom_ribbon(aes( ymax = slide_sum, ymin=0, fill = event), alpha = 0.3) +
@@ -135,18 +130,18 @@ timelinePlot <- function(d,
     }
 
     #Do we have custom x-axis? If so, generate it, otherwise leave it at default
-    if(custom_xlabs & !custom_xbreaks){
+    if(is.vector(custom_xlabs) & !is.vector(custom_xbreaks)){
       stop("In order to have custom labels you need custom breaks too. ")
     }
     
-    if(length(custom_xlabs) != length(custom_xbreaks)){
-      stop("Your labels must be the same length as your breaks.")
-    }
+    # if(length(custom_xlabs) != length(custom_xbreaks)){
+    #   stop("Your labels must be the same length as your breaks.")
+    # }
 
-    if(custom_xbreaks & !custom_xlabs){
+    if(is.vector(custom_xbreaks) & !is.vector(custom_xlabs)){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
                                          expand = c(0, 0))
-    } else if(custom_xbreaks & custom_xlabs){
+    } else if(is.vector(custom_xbreaks) & is.vector(custom_xlabs)){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
                                          labels = custom_xlabs,
                                          expand = c(0, 0))
@@ -159,5 +154,7 @@ timelinePlot <- function(d,
     plot + labs(x = sprintf("Time | Bin-Width: %s %s", bin_width, time_interval) )
 }
 
-timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "day")
+
+timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "day", 
+             custom_xbreaks = c(100, 250, 420))
 
