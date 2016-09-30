@@ -63,6 +63,21 @@ timelinePlot_slide <- function(d,
     melt(id = "id") %>%
     na.omit() %>%
     mutate(value = value/time_divider)
+  
+  #If the user supplied us with labels, let's assign them to the column as factor labels for simplicity. 
+  if(is.vector(event_labels)){ 
+    
+    if(custom_xlabs & !custom_xbreaks){
+      stop("In order to have custom labels you need custom breaks too. ")
+    }
+    
+    if(length(custom_xlabs) != length(custom_xbreaks)){
+      stop("Your labels must be the same length as your breaks.")
+    }
+    
+    tidy_data <- tidy_data %>% 
+      mutate( variable = factor(variable, levels = event_vars, labels = event_labels ))
+  } 
 
   #What our plot will range from
   data_range <- c(0, max(tidy_data$value))
@@ -120,23 +135,15 @@ timelinePlot_slide <- function(d,
 
     if(greyscale){
       plot <- plot +
-        scale_fill_grey( start = 0,  end = .9, name = "Study Event", labels = event_labels) +
-        scale_color_grey (start = 0, end = 0,  name = "Study Event", labels = event_labels)
+        scale_fill_grey( start = 0,  end = .9, name = "Study Event") +
+        scale_color_grey (start = 0, end = 0,  name = "Study Event")
     } else {
       plot <- plot +
-        scale_fill_discrete(name   ="Study Event", labels = event_labels) +
-        scale_color_discrete(name   ="Study Event", labels = event_labels)
+        scale_fill_discrete(name   = "Study Event") +
+        scale_color_discrete(name   = "Study Event")
     }
 
     #Do we have custom x-axis? If so, generate it, otherwise leave it at default
-
-    if(custom_xlabs & !custom_xbreaks){
-      stop("In order to have custom labels you need custom breaks too. ")
-    }
-
-    if(length(custom_xlabs) != length(custom_xbreaks)){
-      stop("Your labels must be the same length as your breaks.")
-    }
 
     if(custom_xbreaks & !custom_xlabs){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
