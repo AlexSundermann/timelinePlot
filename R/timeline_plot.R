@@ -45,12 +45,12 @@ sliding_hist <- function(vec, bin_width, range){
 #' timelinePlot(my_time_data)
 #' @export
 #'
-timelinePlot_slide <- function(d,
+timelinePlot <- function(d,
                                event_vars,            #column titles of the variables to be plotted
-                               event_labels = NA,
+                               event_labels = NULL,
                                time_interval = "days",
-                               max_time = NA,
-                               interval_width = NA,
+                               max_time = NULL,
+                               interval_width = NULL,
                                greyscale = F,
                                custom_xbreaks = F,
                                custom_xlabs = F){
@@ -63,29 +63,14 @@ timelinePlot_slide <- function(d,
     melt(id = "id") %>%
     na.omit() %>%
     mutate(value = value/time_divider)
-  
-  #If the user supplied us with labels, let's assign them to the column as factor labels for simplicity. 
-  if(is.vector(event_labels)){ 
-    
-    if(custom_xlabs & !custom_xbreaks){
-      stop("In order to have custom labels you need custom breaks too. ")
-    }
-    
-    if(length(custom_xlabs) != length(custom_xbreaks)){
-      stop("Your labels must be the same length as your breaks.")
-    }
-    
-    tidy_data <- tidy_data %>% 
-      mutate( variable = factor(variable, levels = event_vars, labels = event_labels ))
-  } 
 
   #What our plot will range from
   data_range <- c(0, max(tidy_data$value))
 
   #if the user gave us a max time lets use that for upper limit instead.
-  if(!is.na(max_time[1])) data_range[2] = max_time
+  if(is.numeric(max_time)) data_range[2] = max_time
 
-  bin_width <- ifelse(is.na(interval_width),
+  bin_width <- ifelse(!is.numeric(interval_width),
                       round((range(tidy_data$value)[2] - range(tidy_data$value)[1])/30),
                       interval_width)
 
@@ -93,7 +78,7 @@ timelinePlot_slide <- function(d,
   #We then will append these to a big dataframe
 
   #Initialize the big holder for all the histogrammed data.
-  dist_data <- data.frame(time = numeric(), slide_sum = numeric(), event = character())
+  dist_data <- data.frame(time = numeric(), slide_sum = integer(), event = character(),stringsAsFactors=FALSE)
 
   for(event in event_vars){
 
@@ -104,12 +89,18 @@ timelinePlot_slide <- function(d,
     #Pass this event's data to the slidy hist function
     histified <- sliding_hist(event_data$value, bin_width, range = data_range) %>%
       rename(time = points) %>%
-      mutate(event = as.character(event))
+      mutate(event = event)
 
     dist_data <- dist_data %>%
       bind_rows(histified)
   }
-
+  
+  #If the user supplied us with labels, let's assign them to the column as factor labels for simplicity. 
+  if(is.vector(event_labels)){ 
+    dist_data <- dist_data %>% 
+      mutate( event = factor(event, levels = event_vars, labels = event_labels ))
+  } 
+  
 
   # Plotting stuff goes below here.
   if(is.na(event_labels)) event_labels = sort(event_vars)
@@ -139,25 +130,34 @@ timelinePlot_slide <- function(d,
         scale_color_grey (start = 0, end = 0,  name = "Study Event")
     } else {
       plot <- plot +
-        scale_fill_discrete(name   = "Study Event") +
-        scale_color_discrete(name   = "Study Event")
+        scale_fill_discrete(name = "Study Event") +
+        scale_color_discrete(name = "Study Event")
     }
 
     #Do we have custom x-axis? If so, generate it, otherwise leave it at default
+    if(custom_xlabs & !custom_xbreaks){
+      stop("In order to have custom labels you need custom breaks too. ")
+    }
+    
+    if(length(custom_xlabs) != length(custom_xbreaks)){
+      stop("Your labels must be the same length as your breaks.")
+    }
 
     if(custom_xbreaks & !custom_xlabs){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
                                          expand = c(0, 0))
     } else if(custom_xbreaks & custom_xlabs){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
-                                        labels = custom_xlabs,
-                                        expand = c(0, 0))
+                                         labels = custom_xlabs,
+                                         expand = c(0, 0))
     } else {
       plot <- plot + scale_x_continuous( expand = c(0,0))
     }
 
     #middle of the plot
-    size_pos <- 0.3 * (range(dist_data$slide_sum)[2] - range(dist_data$slide_sum)[1])
-
+    # size_pos <- 0.3 * (range(dist_data$slide_sum)[2] - range(dist_data$slide_sum)[1])
     plot + labs(x = sprintf("Time | Bin-Width: %s %s", bin_width, time_interval) )
 }
+
+timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "day")
+
