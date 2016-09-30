@@ -9,16 +9,11 @@ document()
 setwd("..")
 install("timelineViz")
 
+
+
 library(timelineViz)
 data <- read.csv("/Users/Nick/dev/timelineViz/data/GA_Data.csv", stringsAsFactors = F)
 
-
-#Full data with still births
-time_data <- data %>%
-  select(id, enroll = gestage, `6wk` = congest6wklmp, ft = congestftlmp, SAB = SABlmp, `Live Birth` = lblmp, Stillbirth = sblmp) %>%
-  melt(id = "id") %>%
-  na.omit()
-
-timelinePlot(time_data)
+timelinePlot(data, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "day")
 
 devtools::install_github("nstrayer/timelinePlot")

@@ -1,4 +1,3 @@
-
 #' Sliding Histogram
 #'
 #' Takes one dimensional data and returns a data frame in the form of x value and sum which are the x and y coordinates of the sliding histogram respectively.
@@ -40,23 +39,21 @@ sliding_hist <- function(vec, bin_width, range){
 #' @param greyscale Turn plot output into greyscale. 
 #' @param custom_xbreaks Vector containing breakpoints for the x-axis. If you want the have custom breaks on x axis to call out individual times.
 #' @param custom_xlabs labels for custom x breaks, must match custom_xbreaks in length.
-#' @rarurn The sum of \code{x} and \code{y}.
 #' @examples
 #' timelinePlot(my_time_data)
 #' @export
 #'
 timelinePlot <- function(d,
-                               event_vars,            #column titles of the variables to be plotted
-                               event_labels = NULL,
-                               time_interval = "days",
-                               max_time = NULL,
-                               interval_width = NULL,
-                               greyscale = F,
-                               custom_xbreaks = NULL,
-                               custom_xlabs = NULL){
+  event_vars,             #column titles of the variables to be plotted
+  event_labels = NULL,
+  time_interval = "days",
+  max_time = NULL,
+  interval_width = NULL,
+  greyscale = F,
+  custom_xbreaks = NULL,
+  custom_xlabs = NULL){
 
   time_divider <-  ifelse(time_interval == "weeks", 7, ifelse(time_interval == "years", 365, 1))
-
 
   #move data into tidy/long format.
   tidy_data <- d[,c("id", event_vars)] %>%
