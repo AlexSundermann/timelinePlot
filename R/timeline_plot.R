@@ -12,8 +12,8 @@
 #'
 sliding_hist <- function(vec, bin_width, range){
 
-  bin_side   <- max( c(round(bin_width/2),  1))
-  step_width <- max( c(round(bin_width/10), 1)) #arbitrary
+  bin_side   <- bin_width/2
+  step_width <- bin_width/10
 
   bin_centers <- seq(from = range[1], to = range[2], by = step_width)
   sum_vals    <- c()
@@ -61,19 +61,32 @@ timelinePlot <- function(d,
   #move data into tidy/long format.
   tidy_data <- d[,c("id", event_vars)] %>%
     melt(id = "id") %>%
-    na.omit() %>%
-    mutate(value = value/time_divider)
+    na.omit()
 
+  bin_width <- ifelse(!is.numeric(interval_width), #no specified interval width
+                      (range(tidy_data$value)[2] - range(tidy_data$value)[1])/30,
+                      interval_width)
+  
+  #Convert to the units we are using (e.g. weeks) from days
+  if(time_divider == 1){
+    bin_width <- round(bin_width/time_divider,1) #if days we can be a little liberal with rounding. 
+  } else if(time_divider == 7) {
+    bin_width <- round(bin_width/time_divider,3) #Weeks, less so
+  } else {
+    bin_width <- round(bin_width/time_divider,5) #Years... not so much rounding. 
+  }
+ 
+  
+  tidy_data <- tidy_data %>% #convert the main dataset too. 
+    mutate(value = value/time_divider)
+    
+  
   #What our plot will range from
   data_range <- c(0, max(tidy_data$value))
-
+  
   #if the user gave us a max time lets use that for upper limit instead.
   if(is.numeric(max_time)) data_range[2] = max_time
-
-  bin_width <- ifelse(!is.numeric(interval_width),
-                      round((range(tidy_data$value)[2] - range(tidy_data$value)[1])/30),
-                      interval_width)
-
+  
   #Now we find the unique events, roll through them and generate sliding hists for each.
   #We then will append these to a big dataframe
 
@@ -134,9 +147,6 @@ timelinePlot <- function(d,
       stop("In order to have custom labels you need custom breaks too. ")
     }
     
-    # if(length(custom_xlabs) != length(custom_xbreaks)){
-    #   stop("Your labels must be the same length as your breaks.")
-    # }
 
     if(is.vector(custom_xbreaks) & !is.vector(custom_xlabs)){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
@@ -155,6 +165,5 @@ timelinePlot <- function(d,
 }
 
 
-timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "day", 
-             custom_xbreaks = c(100, 250, 420))
+timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "weeks")
 
