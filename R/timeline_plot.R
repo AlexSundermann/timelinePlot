@@ -32,14 +32,14 @@ sliding_hist <- function(vec, bin_width, range){
 #' Takes in wide format
 #'
 #' @param d data for events
-#' @param event_vars title of columns containing event data
-#' @param event_labels Legend labels for the events
-#' @param time_interval intervals you want for the x-axis. Options are "days", "weeks", "years". If an unknown value is seen it defaults to days.
-#' @param max_time maximum time plotted
+#' @param event_vars Vector of the titles of the columns containing event data
+#' @param event_labels Vector of the labels for the event data. Must be in same order as event_vars. Defaults to event_vars.
+#' @param time_interval Interval unit you want for the x-axis. Options are "days", "weeks", "years". If an unknown value is seen it defaults to days.
+#' @param max_time How far in time do you want to the chart drawn. If not specified defaults to maximum seen event time. 
 #' @param interval_width Size of rolling interval for sliding histogram
-#' @param greyscale Want to output in greyscale?
-#' @param custom_xbreaks If you want the have custom breaks on x axis to call out individual times
-#' @param custom_xlabs labels for custom x breaks, must match in length.
+#' @param greyscale Turn plot output into greyscale. 
+#' @param custom_xbreaks Vector containing breakpoints for the x-axis. If you want the have custom breaks on x axis to call out individual times.
+#' @param custom_xlabs labels for custom x breaks, must match custom_xbreaks in length.
 #' @rarurn The sum of \code{x} and \code{y}.
 #' @examples
 #' timelinePlot(my_time_data)
@@ -76,11 +76,9 @@ timelinePlot <- function(d,
     bin_width <- round(bin_width/time_divider,5) #Years... not so much rounding. 
   }
  
-  
   tidy_data <- tidy_data %>% #convert the main dataset too. 
     mutate(value = value/time_divider)
     
-  
   #What our plot will range from
   data_range <- c(0, max(tidy_data$value))
   
@@ -159,11 +157,6 @@ timelinePlot <- function(d,
       plot <- plot + scale_x_continuous( expand = c(0,0))
     }
 
-    #middle of the plot
-    # size_pos <- 0.3 * (range(dist_data$slide_sum)[2] - range(dist_data$slide_sum)[1])
+    #delivered unto the loving user. 
     plot + labs(x = sprintf("Time | Bin-Width: %s %s", bin_width, time_interval) )
 }
-
-
-timelinePlot(d, event_vars = c("gestage", "congestftlmp", "congest6wklmp", "SABlmp","lblmp"),time_interval = "weeks")
-
