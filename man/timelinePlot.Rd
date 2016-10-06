@@ -9,28 +9,33 @@ timelinePlot(d, event_vars, event_labels = NULL, time_interval = "days",
   custom_xbreaks = NULL, custom_xlabs = NULL)
 }
 \arguments{
-\item{d}{data for events}
+\item{d}{Data for events. Data should be formatted such that rows represent different participants and columns are different variables. There must be a column named "id" that contains a unique identifier for each study participant.}
 
-\item{event_vars}{Vector of the titles of the columns containing event data}
+\item{event_vars}{Title of columns containing event timing data to be represented in the figure inputted as a vector. Variables describing event timing data should be formatted as the number of days between study event and time zero on the graph.}
 
-\item{event_labels}{Vector of the labels for the event data. Must be in same order as event_vars. Defaults to event_vars.}
+\item{event_labels}{Vector of the labels for the event data in legend. Must be in same order as event_vars. Defaults to event_vars.}
 
-\item{time_interval}{Interval unit you want for the x-axis. Options are "days", "weeks", "years". If an unknown value is seen it defaults to days.}
+\item{time_interval}{Units for time as seen on the x-axis. Options are "days", "weeks", "years". Default is set to days.}
 
-\item{max_time}{How far in time do you want to the chart drawn. If not specified defaults to maximum seen event time.}
+\item{max_time}{Maximum time plotted. If not specified defaults to maximum seen event time.}
 
-\item{interval_width}{Size of rolling interval for sliding histogram}
+\item{interval_width}{Width of rolling interval for sliding histogram in number of days (even though interval_width is specified in days, it will be reported in whatever units are used for time_interval).}
 
-\item{greyscale}{Turn plot output into greyscale.}
+\item{greyscale}{Plot the figure in greyscale}
 
-\item{custom_xbreaks}{Vector containing breakpoints for the x-axis. If you want the have custom breaks on x axis to call out individual times.}
+\item{custom_xbreaks}{Allows for the additional of customizable breaks on the x-axis. Should be in units specified in "time_interval" (default unit is days). Input as a vector.}
 
-\item{custom_xlabs}{labels for custom x breaks, must match custom_xbreaks in length.}
+\item{custom_xlabs}{Allows for customizable labels for custom_xbreaks, must match custom_xbreaks in vector length length.}
 }
 \description{
 Takes in wide format
 }
 \examples{
-timelinePlot(my_time_data)
+timelinePlot(data, event_vars=c("days_to_FU1", "days_to_FU2",
+  "days_to_disease", "days_to_death"),
+  event_labels = c("Follow-Up 1", "Follow-Up 2", "Disease 	Diagnosis", "Death"),
+  time_interval = "weeks", interval_width=28,
+  custom_xbreaks = c(0, 52, 104, 156, 208, 260),
+      custom_xlabs = c("Enrollment", "", "104","", "208", ""))
 }
 

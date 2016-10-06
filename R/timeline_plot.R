@@ -30,17 +30,22 @@ sliding_hist <- function(vec, bin_width, range){
 #'
 #' Takes in wide format
 #'
-#' @param d data for events
-#' @param event_vars Vector of the titles of the columns containing event data
-#' @param event_labels Vector of the labels for the event data. Must be in same order as event_vars. Defaults to event_vars.
-#' @param time_interval Interval unit you want for the x-axis. Options are "days", "weeks", "years". If an unknown value is seen it defaults to days.
-#' @param max_time How far in time do you want to the chart drawn. If not specified defaults to maximum seen event time. 
-#' @param interval_width Size of rolling interval for sliding histogram
-#' @param greyscale Turn plot output into greyscale. 
-#' @param custom_xbreaks Vector containing breakpoints for the x-axis. If you want the have custom breaks on x axis to call out individual times.
-#' @param custom_xlabs labels for custom x breaks, must match custom_xbreaks in length.
+#' @param d Data for events. Data should be formatted such that rows represent different participants and columns are different variables. There must be a column named "id" that contains a unique identifier for each study participant.
+#' @param event_vars Title of columns containing event timing data to be represented in the figure inputted as a vector. Variables describing event timing data should be formatted as the number of days between study event and time zero on the graph.
+#' @param event_labels Vector of the labels for the event data in legend. Must be in same order as event_vars. Defaults to event_vars.
+#' @param time_interval Units for time as seen on the x-axis. Options are "days", "weeks", "years". Default is set to days.
+#' @param max_time Maximum time plotted. If not specified defaults to maximum seen event time.
+#' @param interval_width Width of rolling interval for sliding histogram in number of days (even though interval_width is specified in days, it will be reported in whatever units are used for time_interval).
+#' @param greyscale Plot the figure in greyscale
+#' @param custom_xbreaks Allows for the additional of customizable breaks on the x-axis. Should be in units specified in "time_interval" (default unit is days). Input as a vector.
+#' @param custom_xlabs Allows for customizable labels for custom_xbreaks, must match custom_xbreaks in vector length length.
 #' @examples
-#' timelinePlot(my_time_data)
+#' timelinePlot(data, event_vars=c("days_to_FU1", "days_to_FU2",
+#'   "days_to_disease", "days_to_death"),
+#'   event_labels = c("Follow-Up 1", "Follow-Up 2", "Disease 	Diagnosis", "Death"),
+#'   time_interval = "weeks", interval_width=28,
+#'   custom_xbreaks = c(0, 52, 104, 156, 208, 260),
+#'       custom_xlabs = c("Enrollment", "", "104","", "208", ""))
 #' @export
 #'
 timelinePlot <- function(d,
@@ -63,25 +68,25 @@ timelinePlot <- function(d,
   bin_width <- ifelse(!is.numeric(interval_width), #no specified interval width
                       (range(tidy_data$value)[2] - range(tidy_data$value)[1])/30,
                       interval_width)
-  
+
   #Convert to the units we are using (e.g. weeks) from days
   if(time_divider == 1){
-    bin_width <- round(bin_width/time_divider,1) #if days we can be a little liberal with rounding. 
+    bin_width <- round(bin_width/time_divider,1) #if days we can be a little liberal with rounding.
   } else if(time_divider == 7) {
     bin_width <- round(bin_width/time_divider,3) #Weeks, less so
   } else {
-    bin_width <- round(bin_width/time_divider,5) #Years... not so much rounding. 
+    bin_width <- round(bin_width/time_divider,5) #Years... not so much rounding.
   }
- 
-  tidy_data <- tidy_data %>% #convert the main dataset too. 
+
+  tidy_data <- tidy_data %>% #convert the main dataset too.
     mutate(value = value/time_divider)
-    
+
   #What our plot will range from
   data_range <- c(0, max(tidy_data$value))
-  
+
   #if the user gave us a max time lets use that for upper limit instead.
   if(is.numeric(max_time)) data_range[2] = max_time
-  
+
   #Now we find the unique events, roll through them and generate sliding hists for each.
   #We then will append these to a big dataframe
 
@@ -102,13 +107,13 @@ timelinePlot <- function(d,
     dist_data <- dist_data %>%
       bind_rows(histified)
   }
-  
-  #If the user supplied us with labels, let's assign them to the column as factor labels for simplicity. 
-  if(is.vector(event_labels)){ 
-    dist_data <- dist_data %>% 
+
+  #If the user supplied us with labels, let's assign them to the column as factor labels for simplicity.
+  if(is.vector(event_labels)){
+    dist_data <- dist_data %>%
       mutate( event = factor(event, levels = event_vars, labels = event_labels ))
-  } 
-  
+  }
+
 
   # Plotting stuff goes below here.
 
@@ -141,7 +146,7 @@ timelinePlot <- function(d,
     if(is.vector(custom_xlabs) & !is.vector(custom_xbreaks)){
       stop("In order to have custom labels you need custom breaks too. ")
     }
-    
+
 
     if(is.vector(custom_xbreaks) & !is.vector(custom_xlabs)){
       plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
@@ -154,6 +159,6 @@ timelinePlot <- function(d,
       plot <- plot + scale_x_continuous( expand = c(0,0))
     }
 
-    #delivered unto the loving user. 
+    #delivered unto the loving user.
     plot + labs(x = sprintf("Time | Bin-Width: %s %s", bin_width, time_interval) )
 }
