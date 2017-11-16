@@ -32,6 +32,7 @@ sliding_hist <- function(vec, bin_width, range){
 #' @param event_vars Title of columns containing event timing data to be represented in the figure inputted as a vector. Variables describing event timing data should be formatted as the number of days between study event and time zero on the graph.
 #' @param event_labels Vector of the labels for the event data in legend. Must be in same order as event_vars. Defaults to event_vars.
 #' @param time_interval Units for time as seen on the x-axis. Options are "days", "weeks", "years". Default is set to days.
+#' @param custom_x_interval allows for the assignment of a custom unit for the X-axis that is different than the time_interval unit
 #' @param max_time Maximum time plotted. If not specified defaults to maximum seen event time.
 #' @param interval_width Width of rolling interval for sliding histogram in number of days (even though interval_width is specified in days, it will be reported in whatever units are used for time_interval).
 #' @param greyscale Plot the figure in greyscale
