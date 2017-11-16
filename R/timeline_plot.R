@@ -24,8 +24,6 @@ sliding_hist <- function(vec, bin_width, range){
 
   data.frame(points = bin_centers, slide_sum = sum_vals)
 }
-
-
 #' Timeline Plot
 #'
 #' Takes in wide format
@@ -39,24 +37,27 @@ sliding_hist <- function(vec, bin_width, range){
 #' @param greyscale Plot the figure in greyscale
 #' @param custom_xbreaks Allows for the additional of customizable breaks on the x-axis. Should be in units specified in "time_interval" (default unit is days). Input as a vector.
 #' @param custom_xlabs Allows for customizable labels for custom_xbreaks, must match custom_xbreaks in vector length length.
+#' @param lineart- Allows distribustions to be graphed as lines
 #' @examples
 #' timelinePlot(data, event_vars=c("days_to_FU1", "days_to_FU2",
 #'   "days_to_disease", "days_to_death"),
-#'   event_labels = c("Follow-Up 1", "Follow-Up 2", "Disease 	Diagnosis", "Death"),
+#'   event_labels = c("Follow-Up 1", "Follow-Up 2", "Disease   Diagnosis", "Death"),
 #'   time_interval = "weeks", interval_width=28,
 #'   custom_xbreaks = c(0, 52, 104, 156, 208, 260),
 #'       custom_xlabs = c("Enrollment", "", "104","", "208", ""))
 #' @export
 #'
 timelinePlot <- function(d,
-  event_vars,             #column titles of the variables to be plotted
-  event_labels = NULL,
-  time_interval = "days",
-  max_time = NULL,
-  interval_width = NULL,
-  greyscale = F,
-  custom_xbreaks = NULL,
-  custom_xlabs = NULL){
+                         event_vars,             #column titles of the variables to be plotted
+                         event_labels = NULL,
+                         time_interval = "days",
+                         custom_x_interval = time_interval,
+                         max_time = NULL,
+                         interval_width = NULL,
+                         greyscale = F,
+                         custom_xbreaks = NULL,
+                         custom_xlabs = NULL,
+                         lineart=F){
 
   time_divider <-  ifelse(time_interval == "weeks", 7, ifelse(time_interval == "years", 365, 1))
 
@@ -118,7 +119,6 @@ timelinePlot <- function(d,
   # Plotting stuff goes below here.
 
   plot <- ggplot(dist_data, aes(x = time, color = event)) +
-    geom_ribbon(aes( ymax = slide_sum, ymin=0, fill = event), alpha = 0.3) +
     theme_bw() +
     #eliminates background, gridlines, and chart border
     theme(
@@ -132,33 +132,45 @@ timelinePlot <- function(d,
           axis.line.y = element_line(color="black", size = 0.3)) +
     scale_y_continuous( expand = c(0,0))
 
-    if(greyscale){
-      plot <- plot +
-        scale_fill_grey( start = 0,  end = .9, name = "Study Event") +
-        scale_color_grey (start = 0, end = 0,  name = "Study Event")
-    } else {
-      plot <- plot +
-        scale_fill_discrete(name = "Study Event") +
-        scale_color_discrete(name = "Study Event")
-    }
+  if(lineart){
+    plot <- plot +
+      geom_line(aes(linetype = event, y = slide_sum)) +
+      scale_linetype(name = "Study Event")
+  } else {
+    plot <- plot +
+      geom_ribbon(aes( ymax = slide_sum, ymin=0, fill = event), alpha = 0.3)
+  }
 
-    #Do we have custom x-axis? If so, generate it, otherwise leave it at default
-    if(is.vector(custom_xlabs) & !is.vector(custom_xbreaks)){
-      stop("In order to have custom labels you need custom breaks too. ")
-    }
+  if(greyscale){
+    plot <- plot +
+      scale_fill_grey( start = 0,  end = .9, name = "Study Event") +
+      scale_color_grey(start = 0, end = 0,  name = "Study Event", guide = "none")
+  } else {
+    plot <- plot +
+      scale_fill_discrete(name = "Study Event") +
+      scale_color_discrete(name = "Study Event")
+  }
+  plot <- plot + labs(
+    y = "Frequency"
+  )
+
+  #Do we have custom x-axis? If so, generate it, otherwise leave it at default
+  if(is.vector(custom_xlabs) & !is.vector(custom_xbreaks)){
+    stop("In order to have custom labels you need custom breaks too. ")
+  }
 
 
-    if(is.vector(custom_xbreaks) & !is.vector(custom_xlabs)){
-      plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
-                                         expand = c(0, 0))
-    } else if(is.vector(custom_xbreaks) & is.vector(custom_xlabs)){
-      plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
-                                         labels = custom_xlabs,
-                                         expand = c(0, 0))
-    } else {
-      plot <- plot + scale_x_continuous( expand = c(0,0))
-    }
+  if(is.vector(custom_xbreaks) & !is.vector(custom_xlabs)){
+    plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
+                                       expand = c(0, 0))
+  } else if(is.vector(custom_xbreaks) & is.vector(custom_xlabs)){
+    plot <- plot + scale_x_continuous( breaks = custom_xbreaks,
+                                       labels = custom_xlabs,
+                                       expand = c(0, 0))
+  } else {
+    plot <- plot + scale_x_continuous( expand = c(0,0))
+  }
 
-    #delivered unto the loving user.
-    plot + labs(x = sprintf("Time | Bin-Width: %s %s", bin_width, time_interval) )
+  #delivered unto the loving user.
+  plot + labs(x = sprintf("Time (in %s) | Bin-Width: %s %s",custom_x_interval, bin_width, time_interval) )
 }
