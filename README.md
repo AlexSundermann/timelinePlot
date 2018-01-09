@@ -1,5 +1,5 @@
 # Timeline Viz
-A work in progress package to visualize time to event data. 
+A package to visualize timing of events in a longitudinal study.
 
 to install:
 
